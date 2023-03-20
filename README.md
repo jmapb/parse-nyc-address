@@ -19,7 +19,7 @@ The borough, if found, will be returned as a digit from 1 to 5. (1=Manhttan, 2=B
 
 parseNycAddress can take full postal addresses with zip codes, but *cannot* handle addresses with an addressee (eg a person's name).
 
-It also *cannot* handle appartment, suite, or other unit number styles. It will likeley return them as part of the street name.
+It also *cannot* handle appartment, suite, or other unit number styles. It will likely return them as part of the street name.
 
 It is *not* useful for testing if a given address is in NYC -- even if it returns a borough code. Eg, it might return 1 (Manhattan) for addresses in the state of Minnesota, and 4 (Queens) for addresses in the country of Jamaica.
 
