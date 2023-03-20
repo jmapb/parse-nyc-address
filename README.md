@@ -1,15 +1,15 @@
-# parse-nyc-address
+# Parse-nyc-address
 
-Parse-nyc-address provides a parseNycAddress() function which takes unstructured New York City address text and returns an object with parsed address fields "housenumber", "street", "borough", and "zip".
+<strong>Parse-nyc-address</strong> provides a parseNycAddress() function which takes unstructured New York City address text and returns an object with parsed address fields "housenumber", "street", "borough", and "zip".
 
 A demo is available at https://jmapb.github.io/parse-nyc-address/.
 
 This parser is optimized for researching NYC properties with minimal freeform text searches of housenumber, street, and optionally borough. Commas in the input will be treated as generic whitespace. It handles many common abbreviations and attempts to detect the street names even when the street type is omitted.
 
 parseNycAddress is designed to be used in conjunction with the City's online tools and APIs such
-as GOAT: https://a030-goat.nyc.gov/goat
-GeoSearch: https://geosearch.planninglabs.nyc
-Geoservice: https://geoservice.planning.nyc.gov
+as:<br>GOAT https://a030-goat.nyc.gov/goat<br>
+GeoSearch https://geosearch.planninglabs.nyc<br>
+Geoservice https://geoservice.planning.nyc.gov<br>
 
 The parsing logic is designed around addresses as recorded in New York City's "PAD File" (Propery Address Directory, downloadable from:
 https://www.nyc.gov/site/planning/data-maps/open-data.page#other )
