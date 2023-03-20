@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parse NYC Address</title>
+</head>
+<body>
+    <h1>Parse NYC Address</h1>
+    <div>
+        <input id="parseInputId" value="82 REAR A AVENUE A MH" autofocus=true spellcheck=false size=66">
+        <button id="parseButtonId" type="button" onclick="parseDemo();">Parse</button>
+    </div>
+    <textarea id="outputTextareaId" readonly rows="5" cols="66"></textarea>
+    <script>
+        document.getElementById('parseInputId').addEventListener('keyup', checkKey);
+        
+        function checkKey(e) {
+            if (e.keyCode === 13) {
+                parseDemo();
+            }
+        }
+        
+        function parseDemo() {
+            document.getElementById('outputTextareaId').value = JSON.stringify(parseNycAddress(document.getElementById('parseInputId').value));
+        }
+    </script>
+    <script src="./parse-nyc-address.js"></script>
+</body></html>
