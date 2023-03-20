@@ -1,6 +1,6 @@
 # Parse-nyc-address
 
-<strong>Parse-nyc-address</strong> provides a parseNycAddress() function which takes unstructured New York City address text and returns an object with parsed address fields "housenumber", "street", "borough", and "zip".
+<strong>Parse-nyc-address</strong> provides a parseNycAddress() function which takes unstructured New York City address text and returns an object with parsed address fields "housenumber", "street", "borough", and "postalcode".
 
 A demo is available at https://jmapb.github.io/parse-nyc-address/.
 
