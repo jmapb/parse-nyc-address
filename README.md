@@ -21,6 +21,6 @@ parseNycAddress can take full postal addresses with zip codes, but *cannot* hand
 
 It also *cannot* handle appartment, suite, or other unit number styles. It will likeley return them as part of the street name.
 
-It is *not* useful for testing if a given address is in NYC -- even if it returns a borough code. Eg, it might return 1 (Manhattan) for addresses in the state of Minnesota, and 4 (Queens) for addresses in the country of Jaimaica.
+It is *not* useful for testing if a given address is in NYC -- even if it returns a borough code. Eg, it might return 1 (Manhattan) for addresses in the state of Minnesota, and 4 (Queens) for addresses in the country of Jamaica.
 
 Please report any issues to https://github.com/jmapb/parse-nyc-address/issues
