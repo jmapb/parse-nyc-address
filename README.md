@@ -15,7 +15,7 @@ The parsing logic is designed around addresses as recorded in New York City's "P
 https://www.nyc.gov/site/planning/data-maps/open-data.page#other )
 It will return output in ALL CAPS, like the addresses in the PAD file. Many addresses in the PAD file are actually placenames, which are listed under the "stname" (street name) field with no housenumber. Therefore this parser will return any otherwise-unparsed text as part of the street field in the output, even if no housenumber is found.
 
-The borough, if found, will be returned as a digit from 1 to 5. (1=Manhttan, 2=Bronx, 3=Brooklyn, 4=Queens, 5=Staten Island.) The city/borough/neighborhood names are not returned in the output.
+The borough, if found, will be returned as a digit from 1 to 5. (1=Manhattan, 2=Bronx, 3=Brooklyn, 4=Queens, 5=Staten Island.) The city/borough/neighborhood names are not returned in the output.
 
 parseNycAddress() can take full postal addresses with zip codes, but *cannot* handle addresses with an addressee (eg a person's name).
 

@@ -50,7 +50,7 @@ function parseNycAddress(input) {
 
     /* saintNames are saints that NYC streets are named after. The tokenizer will return a
        multi-word token for "ST " or "ST. " followed by any of these, to help prevent
-       ambuguity in the housenumber/street boundary with addresses like:
+       ambiguity in the housenumber/street boundary with addresses like:
        90 FRONT ST JAMES PLACE
        80 FRONT STREET
        1330 B STREET
@@ -63,7 +63,7 @@ function parseNycAddress(input) {
        street names like A STREET, B STREET, and FRONT STREET to be correctly parsed even if
        abbreviated to ST.
 
-       Note that some saint streets include a possesive S suffix, some don't, and some are
+       Note that some saint streets include a possessive S suffix, some don't, and some are
        found in both forms: ST ANNS AVENUE, ST CLAIR PLACE, ST JOHN AVENUE, ST JOHNS AVENUE.
        All saints are listed without the S here, and '?S? will be added to the regex.
 
@@ -124,7 +124,7 @@ function parseNycAddress(input) {
         'HA?R?BO?R BU?I?LDI?N?G Q'], Object.values(boroRegexes).flat());
     let tokenizerRegex = new RegExp('\\b' + multiWordTokens.join('\\b|\\b') + '\\b|\\S+', 'g');
     let tokens = input.replace(/[\s,]+/g, " ").trim().toUpperCase().match(tokenizerRegex) ?? [];
-    //consider also sanitizing angled single quotes, in case they make their way into possesives
+    //consider also sanitizing angled single quotes, in case they make their way into possessives
 
 
     //-----------------------------------------------------------
@@ -263,7 +263,7 @@ function parseNycAddress(input) {
            AV/AVE/AVENUE (to avoid interfering with AVENUE A/B/C/etc tokenization) so we'll
            check those here.
 
-           These are the only street types necessary to avoid ambuguity given the current list
+           These are the only street types necessary to avoid ambiguity given the current list
            of NYC addresses found in the PAD file. It might be good practice to check against a
            more complete list of street types, but look out for tricky ones like LANE AVENUE,
            PLAZA DRIVE/PLACE/STREET, and BOULEVARD which is a single-word road name in Malba,
@@ -286,7 +286,7 @@ function parseNycAddress(input) {
         }
     }
 
-    /* Assemble all remaning tokens as the street output string */
+    /* Assemble all remaining tokens as the street output string */
     let streetText = tokens.slice(housenumberTokenCount).join(' ');
     if (streetText !== '') {
         output['street'] = streetText;
