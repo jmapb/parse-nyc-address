@@ -1,13 +1,13 @@
 /* parseNycAddress takes unstructured New York City address text and returns an object with parsed
-   address fields "housenumber", "street", "borough", and "zip".
+   address fields "housenumber", "street", "borough", and "postalcode".
 
    This parser is optimized for researching NYC properties with minimal freeform text searches of
    housenumber, street, and optionally borough. Commas in the input will be treated as generic
-   whitespace. It handles many common abbreviations and attempts to detect the street names even
-   when the street type is omitted.
+   whitespace. It handles many common abbreviations and attempts to detect street names even when
+   the street type is omitted.
 
-   parseNycAddress is designed to be used in conjunction with the City's online tools and APIs such
-   as GOAT: https://a030-goat.nyc.gov/goat
+   parseNycAddress() is designed to be used in conjunction with the City's online tools and APIs
+   such as GOAT: https://a030-goat.nyc.gov/goat
    GeoSearch: https://geosearch.planninglabs.nyc
    Geoservice: https://geoservice.planning.nyc.gov
 
@@ -20,17 +20,17 @@
    street field in the output, even if no housenumber is found.
 
    The borough, if found, will be returned as a digit from 1 to 5. (1=Manhttan, 2=Bronx, 3=Brooklyn,
-   4=Queens, 5=Staten Island.)
+   4=Queens, 5=Staten Island.) The city/borough/neighborhood names are not returned in the output.
 
-   parseNycAddress can take full postal addresses with zip codes, but *cannot* handle addresses with
-   an addressee (eg a person's name).
+   parseNycAddress() can take full postal addresses with zip codes, but *cannot* handle addresses
+   with an addressee (eg a person's name).
 
-   It also *cannot* handle appartment, suite, or other unit number styles. It will likeley return
+   It also *cannot* handle apartment, suite, or other unit number styles. It will likeley return
    them as part of the street name.
 
    It is *not* useful for testing if a given address is in NYC -- even if it returns a borough code.
    Eg, it might return 1 (Manhattan) for addresses in the state of Minnesota, and 4 (Queens) for
-   addresses in the country of Jaimaica.
+   addresses in the country of Jamaica.
 
    Please report any issues to https://github.com/jmapb/parse-nyc-address/issues
  */
@@ -81,8 +81,8 @@ function parseNycAddress(input) {
         'PETER', 'RAYMOND', 'STEPHEN', 'THERESA'];
 
     /* boroRegexes are multi-word patterns that indicate a particular boro, and are listed by the
-       NYC boro code. If found in the input text, these also need to be combined as single multi-
-       word tokens.
+       NYC boro code. Like the saints, these also need to be combined into single multi-word
+       tokens so the boro can be identified and separated from the street address tokens.
 
        Boro 4 (Queens) has a long list of possible patterns because postal addresses in Queens use
        local neighborhood names instead of the boro name.
@@ -95,19 +95,23 @@ function parseNycAddress(input) {
        (Single-word boro indicators like "Manhttan" and "Brooklyn", and the single-word Queens
        neighborhoods, are listed below in step 3, in the simpleBoros object.)
      */
-    const boroRegexes =  { 2: ['THE B(RO)?N?X'],
-                           4: ['ADDISLEIGH PA?R?K', 'BAYSIDE H(IL)?LS?', 'BELLE HA?RB(OR)?', 'BELLEROSE( MANOR)',
-                               'BREEZY P(OI)?N?T', 'BROAD CHAN(NEL)?', 'CAMBRIA H(EI)?(GH)?TS?', 'COLLEGE P(OI)?N?T',
-                               'E(AST)? ELMHURST', 'FAR ROCKAWAY', 'FOREST H(IL)?LS?', 'F(OR)?T TILDEN',
-                               'FRESH M(EA)?DO?WS', 'HOLLIS HI?LL?S?', 'HOWARD B(EA)?CH', 'JACKSON H(EI)?G?H?TS?',
-                               '(JOHN F.? )?KENNEDY AIRPO?R?T', 'JFK AIRPO?R?T', 'KEW GA?RDE?NS?( H(IL)?LS?)?',
-                               'LA GUARDIA AIRPO?R?T', 'LITTLE NE?CK', 'LONG IS(LAND)? CITY', 'MIDDLE VI?L(LA)?GE?',
-                               'OAKLAND GA?RDE?NS?', '(S(OUTH)? )?OZONE PA?R?K', 'Q(UEE)?NS VI?L(LA)?GE?',
-                               'REGO PA?R?K', '(S(OUTH)? )?RICHMOND HI?LL?S?', 'ROCHDALE VI?L(LA)?GE?',
-                               'ROCKAWAY B(EA)?CH', 'ROCKAWAY PA?R?K', 'ROCKAWAY P(OI)?N?T', 'S(AIN)?T ALBANS?',
-                               'SPRINGFIELD GA?RDE?NS?', 'WAVE CRE?ST'],
-                           5: ['STATEN ISL?(AND)?'],
-                           6: ['NEW YORK( CITY)?', 'NY CITY'],
+    const boroRegexes =  { 2: ['THE ?B(RO)?N?X'],
+                           4: ['ADDISLEIGH ?PA?R?K', 'BAYSIDE ?H(IL)?LS?', 'BELLE? ?HA?RB(OR)?',
+                               'BELLE?ROSE( MANOR)', 'BREEZY ?P(OI)?N?T', 'BR(OA)?D ?CHAN(NEL)?',
+                               'CAMBRIA ?H(EI)?(GH)?TS?', 'COLLEGE ?P(OI)?N?T', 'E(AST)? ?ELMHURST',
+                               'FA?R ?ROCKAWAY', 'FO?RE?ST ?H(IL)?LS?', 'F(OR)?T ?TILDEN',
+                               'FRE?SH ?M(EA)?DO?WS', 'HOLLIS ?HI?LL?S?', 'HOWARD ?B(EA)?CH',
+                               'JACKSON ?H(EI)?G?H?TS?', '(JOHN F.? )?KENNEDY AIRPO?R?T',
+                               'JFK ?AIRPO?R?T', 'KEW ?GA?RDE?NS?( H(IL)?LS?)?', 'LITTLE ?NE?CK',
+                               'LA ?GUARDIA AIRPO?R?T', 'L(ONG)? ?IS?(LAND)? ?CITY',
+                               'MID(DLE)? ?VI?L(LA)?GE?', 'OAKLA?ND ?GA?RDE?NS?',
+                               '(S(OUTH)? )?OZONE ?PA?R?K', 'Q(UEE)?NS ?VI?L(LA)?GE?',
+                               'REGO ?PA?R?K', '(S(OUTH)? )?RICHMOND ?HI?LL?S?',
+                               'ROCHDALE ?VI?L(LA)?GE?', 'ROCKAWAY ?B(EA)?CH', 'ROCKAWAY ?PA?R?K',
+                               'ROCKAWAY ?P(OI)?N?T', 'S(AIN)?T ?ALBANS?',
+                               'SPRINGFIELD ?GA?RDE?NS?', 'WAVE ?CRE?ST'],
+                           5: ['STATEN ?ISL?(AND)?'],
+                           6: ['NEW ?YORK( CITY)?', 'NY ?CITY'],
                            7: ['UNITED STATES( OF AMERICA)'] };
 
     /* Combine the saintNames and boroRegexes along with a few other special cases into a long regex
@@ -116,8 +120,8 @@ function parseNycAddress(input) {
      */
     const multiWordTokens = saintNames.map(x => "ST\\.? " + x + "'?S?").concat( ['AVE?(NUE)? OF',
         '(BMT.Q.)?AVE?(NUE)? \\w', 'FRONT STR(EET)?', '\\w STR(EET)?', 'FRONT R(OA)?D',
-        '\\w R(OA)?D', 'OF NEW YORK', 'OF NY', 'OF MANHATTAN', 'OF THE BRONX', 'OF BROOKLYN',
-        'OF Q(UEE)?NS', 'CE?N?TE?R Q(UEE)?NS', 'OF STATEN ISL?(AND)?', 'OF SI', 'PS.?IS 78 Q',
+        '\\w R(OA)?D', 'OF NEW ?YORK', 'OF NY', 'OF MANHATTAN', 'OF THE ?BRONX', 'OF BROOKLYN',
+        'OF Q(UEE)?NS', 'CE?N?TE?R Q(UEE)?NS', 'OF STATEN ?ISL?(AND)?', 'OF SI', 'PS.?IS 78 Q',
         'HA?R?BO?R BU?I?LDI?N?G Q'], Object.values(boroRegexes).flat());
     let tokenizerRegex = new RegExp('\\b' + multiWordTokens.join('\\b|\\b') + '\\b|\\b(BMT.Q.)?AVE?(NUE)? \\w$|\\S+', 'g');
     let tokens = input.replace(/[\s,]+/g, " ").trim().toUpperCase().match(tokenizerRegex) ?? [];
@@ -192,14 +196,14 @@ function parseNycAddress(input) {
     /* Loop backwards through the tokens looking for boro names */
     let boro = 9; //using 9 for unknown, so we can test for a valid boro with < 6
     let foundNy = false;
-    const simpleBoros = { 'MANHATTAN': 1,'M': 1,'MA': 1,'MH': 1, 'MN': 1,
+    const simpleBoros = { 'MANHATTAN': 1, 'M': 1,'MA': 1,'MH': 1, 'MN': 1,
                           'BRONX': 2, 'BX': 2, 'BRX': 2, 'BRON': 2,
                           'BROOKLYN': 3, 'BK': 3, 'BRK': 3, 'BKLYN': 3, 'BRKLYN': 3,
                           'QUEENS': 4, 'Q': 4, 'QN': 4, 'QNS': 4, 'ARVERNE': 4, 'ASTORIA': 4,
                           'AUBURNDALE': 4, 'BAYSIDE': 4, 'BEECHHURST': 4, 'BRIARWOOD': 4,
                           'CORONA': 4, 'DOUGLASTON': 4, 'EDGEMERE': 4, 'ELMHURST': 4, 'FLUSHING': 4,
-                          'GLENDALE': 4, 'HOLLIS': 4, 'JAMAICA': 4, 'LAURELTON': 4, 'MALBA': 4,
-                          'MASPETH': 4, 'NEPONSIT': 4, 'RIDGEWOOD': 4, 'ROSEDALE': 4,
+                          'GLENDALE': 4, 'HOLLIS': 4, 'JAMAICA': 4, 'LAURELTON': 4, 'LIC': 4,
+                          'MALBA': 4, 'MASPETH': 4, 'NEPONSIT': 4, 'RIDGEWOOD': 4, 'ROSEDALE': 4,
                           'SUNNYSIDE': 4, 'WHITESTONE': 4, 'WOODHAVEN': 4, 'WOODSIDE': 4,
                           'SI': 5,
                           'NY': 6, 'NYC': 6,
@@ -235,10 +239,10 @@ function parseNycAddress(input) {
     //Some placenames also end with tokens like "OF MANHATTAN", "OF QUEENS", "CTR QNS", "OF SI"
     //which unambiguously specify the boro. We could check for those as well.
     if ((boro > 6) && foundNy) {
-        boro = 1; //Fall back to Manhattan if "New York" etc was found but no other boro name
+        boro = 1; //Fall back to Manhattan if "New York" etc was found, but no other boro name
     }
     if (boro < 6) {
-        output['borough'] = boro;
+        output['borough'] = '' + boro;
     }
 
 
@@ -275,13 +279,15 @@ function parseNycAddress(input) {
             && !['ST','ST.','AV','AVE','AVENUE'].includes(tokens[housenumberTokenCount+1] ?? '')) {
             housenumberTokenCount++;
         }
+        
+        /* Assemble the housenumer output string */
         let housenumberText = tokens.slice(0, housenumberTokenCount).join(' ');
         if (housenumberText !== '') {
             output['housenumber'] = housenumberText;
         }
     }
 
-    /* Join all remaning tokens and return as the street. */
+    /* Assemble all remaning tokens as the street output string */
     let streetText = tokens.slice(housenumberTokenCount).join(' ');
     if (streetText !== '') {
         output['street'] = streetText;
