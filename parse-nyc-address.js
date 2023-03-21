@@ -59,10 +59,9 @@ function parseNycAddress(input) {
        1307 REAR A STREET
        (These are all real addresses from the PAD file.)
 
-       The tokenizer will combine ST followed by a saint name into a single token first, then can
-       safely combine A ST/B ST/FRONT ST/etc into a single token (along with A/B/C/D ROAD and
-       FRONT AVENUE). Then any remaining A/B/C/D/FRONT tokens after the housenumber can be
-       presumed to be part of the housenumber.
+       The tokenizer will combine ST followed by a saint name into a single first, allowing
+       street names like A STREET, T STREET, and FRONT STREET to be correctly parsed even if 
+       abbreviated to ST.
 
        Note that some saint streets include a possesive S suffix, some don't, and some are
        found in both forms: ST ANNS AVENUE, ST CLAIR PLACE, ST JOHN AVENUE, ST JOHNS AVENUE.
