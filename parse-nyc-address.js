@@ -53,14 +53,14 @@ function parseNycAddress(input) {
        ambuguity in the housenumber/street boundary with addresses like:
        90 FRONT ST JAMES PLACE
        80 FRONT STREET
-       300 FRONT T STREET
+       1330 B STREET
        655 FRONT A ST ANNS AVENUE
        607 REAR A ST JOHNS PLACE
        1307 REAR A STREET
        (These are all real addresses from the PAD file.)
 
-       The tokenizer will combine ST followed by a saint name into a single first, allowing
-       street names like A STREET, T STREET, and FRONT STREET to be correctly parsed even if 
+       The tokenizer will combine ST followed by a saint name into a single token, allowing
+       street names like A STREET, B STREET, and FRONT STREET to be correctly parsed even if
        abbreviated to ST.
 
        Note that some saint streets include a possesive S suffix, some don't, and some are
@@ -122,7 +122,7 @@ function parseNycAddress(input) {
         '\\w R(OA)?D', 'OF NEW ?YORK', 'OF NY', 'OF MANHATTAN', 'OF THE ?BRONX', 'OF BROOKLYN',
         'OF Q(UEE)?NS', 'CE?N?TE?R Q(UEE)?NS', 'OF STATEN ?ISL?(AND)?', 'OF SI', 'PS.?IS 78 Q',
         'HA?R?BO?R BU?I?LDI?N?G Q'], Object.values(boroRegexes).flat());
-    let tokenizerRegex = new RegExp('\\b' + multiWordTokens.join('\\b|\\b') + '\\b|\\b(BMT.Q.)?AVE?(NUE)? \\w$|\\S+', 'g');
+    let tokenizerRegex = new RegExp('\\b' + multiWordTokens.join('\\b|\\b') + '\\b|\\S+', 'g');
     let tokens = input.replace(/[\s,]+/g, " ").trim().toUpperCase().match(tokenizerRegex) ?? [];
     //consider also sanitizing angled single quotes, in case they make their way into possesives
 
