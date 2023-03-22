@@ -6,7 +6,7 @@ A demo is available at https://jmapb.github.io/parse-nyc-address/.
   
 This parser is optimized for researching NYC properties with minimal freeform text searches of housenumber, street, and optionally borough. Commas in the input will be treated as generic whitespace. It handles many common abbreviations and attempts to detect street names even when the street type is omitted.
 
-parseNycAddress() is designed to be used in conjunction with the City's online tools and APIs such as:<br>
+parseNycAddress() is designed to be used in conjunction with the City's open data tools and APIs such as:<br>
 GOAT https://a030-goat.nyc.gov/goat<br>
 GeoSearch https://geosearch.planninglabs.nyc<br>
 Geoservice https://geoservice.planning.nyc.gov
@@ -23,10 +23,10 @@ parsed_addr1 = parseNycAddress("123 broadway");
 // {"housenumber":"123", "street":"BROADWAY"}`
 parsed_addr2 = parseNycAddress("655 FRONT A ST ANNS AVENUE);
 // {"housenumber":"655 FRONT A", "street":"ST ANNS AVENUE"}
-parsed_addr3 = parseNycAddress("32 cranberry bk");
-// {"borough":"3", "housenumber":"32", "street":"CRANBERRY"}
-parsed_addr4 = parseNycAddress("189 1/2 A Beach 25th Street Far Rockaway");
-// {"borough":"4", "housenumber":"189 1/2 A", "street":"BEACH 25TH STREET"}
+parsed_addr3 = parseNycAddress("30 cranberry bk");
+// {"borough":"3", "housenumber":"30", "street":"CRANBERRY"}
+parsed_addr4 = parseNycAddress("189 1/2 A Beach 25th St Far Rockaway");
+// {"borough":"4", "housenumber":"189 1/2 A", "street":"BEACH 25TH ST"}
 parsed_addr5 = parseNycAddress("30 Cranberry Court Staten Island NY 10309 USA");
 // {"postalcode":"10309", "borough":"5", "housenumber":"30", "street":"CRANBERRY COURT"}
 ```

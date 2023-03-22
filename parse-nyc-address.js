@@ -6,14 +6,14 @@
    whitespace. It handles many common abbreviations and attempts to detect street names even when
    the street type is omitted.
 
-   parseNycAddress() is designed to be used in conjunction with the City's online tools and APIs
+   parseNycAddress() is designed to be used in conjunction with the City's open data tools and APIs
    such as GOAT: https://a030-goat.nyc.gov/goat
    GeoSearch: https://geosearch.planninglabs.nyc
    Geoservice: https://geoservice.planning.nyc.gov
 
    The parsing logic is designed around addresses as recorded in New York City's "PAD File"
    (Propery Address Directory, downloadable from:
-   https://www.nyc.gov/site/planning/data-maps/open-data.page#other )
+   https://www.nyc.gov/site/planning/data-maps/open-data.page#other)
    It will return output in ALL CAPS, like the addresses in the PAD file. Many addresses in the PAD
    file are actually placenames, which are listed under the "stname" (street name) field with no
    housenumber. Therefore this parser will return any otherwised-unparsed text as part of the
@@ -21,6 +21,19 @@
 
    The borough, if found, will be returned as a digit from 1 to 5. (1=Manhttan, 2=Bronx, 3=Brooklyn,
    4=Queens, 5=Staten Island.) The city/borough/neighborhood names are not returned in the output.
+
+   Examples:
+
+   parseNycAddress("123 broadway") ->
+       {"housenumber":"123", "street":"BROADWAY"}
+   parseNycAddress("655 FRONT A ST ANNS AVENUE) ->
+       {"housenumber":"655 FRONT A", "street":"ST ANNS AVENUE"}
+   parseNycAddress("30 cranberry bk") ->
+       {"borough":"3", "housenumber":"30", "street":"CRANBERRY"}
+   parseNycAddress("189 1/2 A Beach 25th St Far Rockaway") ->
+       {"borough":"4", "housenumber":"189 1/2 A", "street":"BEACH 25TH ST"}
+   parseNycAddress("30 Cranberry Court Staten Island NY 10309 USA") ->
+       {"postalcode":"10309", "borough":"5", "housenumber":"30", "street":"CRANBERRY COURT"}
 
    parseNycAddress() can take full postal addresses with zip codes, but *cannot* handle addresses
    with an addressee (eg a person's name).
@@ -92,7 +105,7 @@ function parseNycAddress(input) {
        found. 7 is used for "United States" and similar which contains no boro information but, like
        the boro patterns, needs to be popped off the end of the input string during parsing.
 
-       (Single-word boro indicators like "Manhttan" and "Brooklyn", and the single-word Queens
+       (Single-word boro indicators like "Manhattan" and "Brooklyn", and the single-word Queens
        neighborhoods, are listed below in step 3, in the simpleBoros object.)
      */
     const boroRegexes =  { 2: ['THE ?B(RO)?N?X'],
@@ -132,7 +145,7 @@ function parseNycAddress(input) {
     //STEP 2 -- Count how many tokens are part of the housenumber
     //-----------------------------------------------------------
 
-    /* The NYC PAD file considers suffices like 1/2, 1/3, GARAGE, REAR, and some strange thing like
+    /* The NYC PAD file considers suffixes like 1/2, 1/3, GARAGE, REAR, and some strange things like
        AIR RIGHTS to be part the houseumber. housenumberTokens lists all tokens that are 1) valid in
        housenumbers and 2) will never be the first token of a street name that follows a housenumber.
        (There are currently no housenumbers with 2/3 or 3/4 but they're included just in case.)
@@ -213,7 +226,7 @@ function parseNycAddress(input) {
                              104: 2,
                              112: 3,
                              111: 4, 113: 4, 114: 4, 116: 4,
-                             103: 5 };                          
+                             103: 5 };
     while (tokens.length - housenumberTokenCount > 1) { //make sure we leave at least one token for steet, even if it looks like a boro
         lastToken = tokens[tokens.length - 1] ?? '';
         if (zipBoro === 9) {
@@ -268,8 +281,8 @@ function parseNycAddress(input) {
     /* If there is at least one housenumber token, add housenumber field to the output. */
     if (housenumberTokenCount > 0) {
         /* As mentioned in the Step 2 comments, if there are multiple street name tokens, and the
-           first token of the street name is an "ambiguous" token (A/B/C/D/FRONT), we might first
-           want to move this token from the street name to the housenumber, before assigning the
+           first token of the street name is an "ambiguous" token (A/B/C/D/FRONT), we might want
+           to move this token from the street name to the housenumber, before assigning the
            housenumber field -- but only if the next token after it does not look like a street
            type.
 
@@ -294,7 +307,7 @@ function parseNycAddress(input) {
             && !['ST','ST.','AV','AVE','AVENUE'].includes(tokens[housenumberTokenCount+1] ?? '')) {
             housenumberTokenCount++;
         }
-        
+
         /* Assemble the housenumer output string */
         let housenumberText = tokens.slice(0, housenumberTokenCount).join(' ');
         if (housenumberText !== '') {
