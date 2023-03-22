@@ -29,8 +29,9 @@
    them as part of the street name.
 
    It is *not* useful for testing if a given address is in NYC -- even if it returns a borough code.
-   Eg, it might return 1 (Manhattan) for addresses in the state of Minnesota, and 4 (Queens) for
-   addresses in the country of Jamaica.
+   Eg, it might return 1 (Manhattan) for addresses in the state of Minnesota, or 4 (Queens) for
+   addresses in the country of Jamaica. It does no validation on the data, but merely reports what
+   the address components and borough would be *if* the input text were a valid NYC address.
 
    Please report any issues to https://github.com/jmapb/parse-nyc-address/issues
  */
@@ -179,7 +180,7 @@ function parseNycAddress(input) {
        elsewhere.
      */
     let lastToken = tokens[tokens.length - 1] ?? '';
-    let zipBoro = 9;
+
     const zipMatches = /^(\d\d\d)\d\d/.exec(lastToken);
     if (Array.isArray(zipMatches)) {
         output['postalcode'] = lastToken;
@@ -194,6 +195,7 @@ function parseNycAddress(input) {
 
     /* Loop backwards through the tokens looking for boro names */
     let boro = 9; //using 9 for unknown, so we can test for a valid boro with < 6
+    let zipBoro = 9;
     let foundNy = false;
     const simpleBoros = { 'MANHATTAN': 1, 'M': 1,'MA': 1,'MH': 1, 'MN': 1,
                           'BRONX': 2, 'BX': 2, 'BRX': 2, 'BRON': 2,
@@ -207,8 +209,22 @@ function parseNycAddress(input) {
                           'SI': 5,
                           'NY': 6, 'NYC': 6,
                           'US': 7, 'USA': 7 };
+    const zipPrefixBoros = { 100: 1, 101: 1, 102: 1,
+                             104: 2,
+                             112: 3,
+                             111: 4, 113: 4, 114: 4, 116: 4,
+                             103: 5 };                          
     while (tokens.length - housenumberTokenCount > 1) { //make sure we leave at least one token for steet, even if it looks like a boro
         lastToken = tokens[tokens.length - 1] ?? '';
+        if (zipBoro === 9) {
+            const zipMatches = /^(\d\d\d)\d\d/.exec(lastToken);
+            if (Array.isArray(zipMatches)) {
+                output['postalcode'] = lastToken;
+                zipBoro = zipPrefixBoros[zipMatches[1]] ?? 7;
+                tokens.pop();
+                continue;
+            }
+        }
         boro = simpleBoros[lastToken] ?? 9;
         if (boro === 9) {
             for (const boroKey in boroRegexes) {
@@ -229,7 +245,7 @@ function parseNycAddress(input) {
             break;
         }
     }
-    if ((boro > 5) && (zipBoro !== 9)) {
+    if ((boro > 5) && (zipBoro < 6)) {
        boro = zipBoro;
     }
     //We could let users set the boro code directly in the search text (eg "123 Broadway 1") but
