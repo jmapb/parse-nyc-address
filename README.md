@@ -21,7 +21,7 @@ Examples:
 ```
 parsed_addr1 = parseNycAddress("123 broadway");
 // {"housenumber":"123", "street":"BROADWAY"}`
-parsed_addr3 = parseNycAddress("655 FRONT A ST ANNS AVENUE);
+parsed_addr2 = parseNycAddress("655 FRONT A ST ANNS AVENUE);
 // {"housenumber":"655 FRONT A", "street":"ST ANNS AVENUE"}
 parsed_addr3 = parseNycAddress("32 cranberry bk");
 // {"borough":"3", "housenumber":"32", "street":"CRANBERRY"}
