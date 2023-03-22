@@ -1,5 +1,5 @@
 /* parseNycAddress takes unstructured New York City address text and returns an object with parsed
-   address fields "housenumber", "street", "borough", and "postalcode".
+   address fields "housenumber", "street", "borough", and "postcode".
 
    This parser is optimized for researching NYC properties with minimal freeform text searches of
    housenumber, street, and optionally borough. Commas in the input will be treated as generic
@@ -33,7 +33,7 @@
    parseNycAddress("189 1/2 A Beach 25th St Far Rockaway") ->
        {"borough":"4", "housenumber":"189 1/2 A", "street":"BEACH 25TH ST"}
    parseNycAddress("30 Cranberry Court Staten Island NY 10309 USA") ->
-       {"postalcode":"10309", "borough":"5", "housenumber":"30", "street":"CRANBERRY COURT"}
+       {"postcode":"10309", "borough":"5", "housenumber":"30", "street":"CRANBERRY COURT"}
 
    parseNycAddress() can take full postal addresses with zip codes, but *cannot* handle addresses
    with an addressee (eg a person's name).
@@ -188,24 +188,6 @@ function parseNycAddress(input) {
     //          state, country, and zip code tokens from the end of the token list
     //--------------------------------------------------------------------------------
 
-    /* If last token looks like a zip code, remove it and add it to the output. If the first three
-       digits match known NYC zip codes, we can also use it to find the boro, if not specified
-       elsewhere.
-     */
-    let lastToken = tokens[tokens.length - 1] ?? '';
-
-    const zipMatches = /^(\d\d\d)\d\d/.exec(lastToken);
-    if (Array.isArray(zipMatches)) {
-        output['postalcode'] = lastToken;
-        const zipPrefixBoros = { 100: 1, 101: 1, 102: 1,
-                     104: 2,
-                     112: 3,
-                     111: 4, 113: 4, 114: 4, 116: 4,
-                     103: 5 };
-        zipBoro = zipPrefixBoros[zipMatches[1]] ?? 9;
-        tokens.pop();
-    }
-
     /* Loop backwards through the tokens looking for boro names */
     let boro = 9; //using 9 for unknown, so we can test for a valid boro with < 6
     let zipBoro = 9;
@@ -232,7 +214,7 @@ function parseNycAddress(input) {
         if (zipBoro === 9) {
             const zipMatches = /^(\d\d\d)\d\d/.exec(lastToken);
             if (Array.isArray(zipMatches)) {
-                output['postalcode'] = lastToken;
+                output['postcode'] = lastToken;
                 zipBoro = zipPrefixBoros[zipMatches[1]] ?? 7;
                 tokens.pop();
                 continue;
