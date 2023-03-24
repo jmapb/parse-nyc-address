@@ -1,6 +1,6 @@
 {
   "name": "parse-nyc-address",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Parser for New York City street addresses",
   "main": "parse-nyc-address.js",
   "scripts": {

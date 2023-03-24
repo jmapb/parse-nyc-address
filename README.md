@@ -24,11 +24,11 @@ parsed_addr1 = parseNycAddress("123 broadway");
 parsed_addr2 = parseNycAddress("655 FRONT A ST ANNS AVENUE);
 // {"housenumber":"655 FRONT A", "street":"ST ANNS AVENUE"}
 parsed_addr3 = parseNycAddress("30 cranberry bk");
-// {"housenumber":"30", "street":"CRANBERRY", "borough":"3"}
+// {"housenumber":"30", "street":"CRANBERRY", "borough":3}
 parsed_addr4 = parseNycAddress("189 1/2 A Beach 25th St Far Rockaway");
-// {"housenumber":"189 1/2 A", "street":"BEACH 25TH ST", "borough":"4"}
+// {"housenumber":"189 1/2 A", "street":"BEACH 25TH ST", "borough":4}
 parsed_addr5 = parseNycAddress("30 Cranberry Court Staten Island NY 10309 USA");
-// {"housenumber":"30", "street":"CRANBERRY COURT", "borough":"5", "postcode":"10309"}
+// {"housenumber":"30", "street":"CRANBERRY COURT", "borough":5, "postcode":"10309"}
 ```
 
 parseNycAddress() can take full postal addresses with zip codes, but *cannot* handle addresses with an addressee (eg a person's name).
