@@ -342,7 +342,6 @@ function parseNycAddress(input) {
             } else if (housenumberTokenCount > 0) {
                 housenumberInt = parseInt(tokens[0]);
                 if (housenumberInt > 0) {
-                                    console.log(housenumberInt + ' > 0 "' + streetText + '"');
                     if ( ((streetText === 'BROADWAY')
                           && ((housenumberInt === 5485) || ((housenumberInt >= 5170) && (housenumberInt <= 5480))))
                         || ((housenumberInt < 200) && /22[578](TH)? ST/.test(streetText)) ) {
