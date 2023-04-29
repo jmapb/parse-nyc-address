@@ -1,9 +1,9 @@
-/* parseNycAddress takes unstructured New York City address text and returns an object with parsed
+/* parseNycAddress() takes unstructured New York City address text and returns an object with parsed
    address fields "housenumber", "street", "borough", and "postcode". Unlike typical street address
    parsers, it will *not* return city and state fields.
 
    This parser is optimized for researching NYC properties with minimal freeform text searches of
-   housenumber, street, and optionally borough. Commas in the input will be treated as generic
+   housenumber, street, and optionally borough. Commas in the input are treated as generic
    whitespace. It handles many common abbreviations and attempts to detect street names even when
    the street type is omitted.
 
@@ -12,11 +12,11 @@
    GeoSearch: https://geosearch.planninglabs.nyc
    Geoservice: https://geoservice.planning.nyc.gov
 
-   The parsing logic is designed around addresses as recorded in New York City's "PAD File"
+   The parsing logic is designed around addresses as recorded in New York City's "PAD" file
    (Propery Address Directory, downloadable from:
    https://www.nyc.gov/site/planning/data-maps/open-data.page#other)
    It will return output in ALL CAPS, like the addresses in the PAD file. Many addresses in the PAD
-   file are actually placenames, which are listed under the "stname" (street name) field with no
+   are actually placenames, which are listed under the "stname" (street name) field with no
    housenumber. Therefore this parser will return any otherwised-unparsed text as part of the
    street field in the output, even if no housenumber is found.
 
@@ -47,10 +47,13 @@
    addresses in the country of Jamaica. It does no validation on the data, but merely reports what
    the address components and borough would be *if* the input text were a valid NYC address.
 
-   Please report any issues to https://github.com/jmapb/parse-nyc-address/issues
+   Please report any issues to https://github.com/jmapb/parse-nyc-address/issues.  Thanks to MxxCon
+   for assistance with Queens neighborhood names!
  */
+ 
 
-function parseNycAddress(input) {
+
+const parseNycAddress = function(input) {
 
     function wholeStringMatchesPattern(str, pattern) {
         let regex = new RegExp('^' + pattern + '$');
@@ -58,6 +61,7 @@ function parseNycAddress(input) {
     }
 
     const output = {};
+    let marbleHill = false;
 
     //------------------------------------
     //STEP 1 -- Tokenize the input string
@@ -190,9 +194,13 @@ function parseNycAddress(input) {
     //          state, country, and zip code tokens from the end of the token list
     //--------------------------------------------------------------------------------
 
-    /* Loop backwards through the tokens looking for boro names */
-    let boro = 9; //using 9 for unknown, so we can test for a valid boro with < 6
+
+    let boro = 9; 
     let zipBoro = 9;
+    /* In addition to standard boro codes 1-5, we use 9 to mean unknown, 7 to mean inconclusive,
+       and 6 to mean that Manhattan will be a fallback if no more specific info is found. We
+       avoid any values < 1 so we can test for a valid boro with < 6.
+     */
     let foundNy = false;
     let postcode = '';
     const simpleBoros = { 'MANHATTAN': 1, 'M': 1,'MA': 1,'MH': 1, 'MN': 1,
@@ -206,13 +214,15 @@ function parseNycAddress(input) {
                           'RIDGEWOOD': 4, 'ROSEDALE': 4,  'SUNNYSIDE': 4, 'WHITESTONE': 4,
                           'WOODHAVEN': 4, 'WOODSIDE': 4,
                           'SI': 5,
-                          'NY': 6, 'NYNY':6, 'NYC': 6,
+                          'NY': 6, 'NYNY': 6, 'NYC': 6,
                           'US': 7, 'USA': 7 };
     const zipPrefixBoros = { 100: 1, 101: 1, 102: 1,
                              104: 2,
                              112: 3,
                              111: 4, 113: 4, 114: 4, 116: 4,
                              103: 5 };
+ 
+    /* Loop backwards through the tokens looking for boro names */
     while (tokens.length - housenumberTokenCount > 1) { //make sure we leave at least one token for steet, even if it looks like a boro
         finalToken = tokens[tokens.length - 1] ?? '';
         if (zipBoro === 9) {
@@ -319,8 +329,8 @@ function parseNycAddress(input) {
            There's a MARBLE HILL boro 1 override in boroRegexes, in case someone searches using the
            neighborhood name -- not really correct, but might happen. Input could also just specify
            Manhattan (which is correct) or MH, which is a handy shorthand for Manhattan that one
-           could also pretend stood for Marble Hill. Or even just M -- any of these would return
-           boro=1.
+           could also pretend stood for Marble Hill. Or even just M -- we'll assume any of these
+           are boro=1.
 
            But since we also want to support postal addresses, which should say Bronx, we need to
            know which Bronx addresses are actually Marble Hill addresses to return 1 instead of 2.
@@ -338,19 +348,25 @@ function parseNycAddress(input) {
                 'MARBLE HI?L?L HOUSES CHILDRENS? CE?N?TE?R', '(THE )?SHOPS AT MARBLE HI?L?L',
                 'IRT-1-MARBLE HI?L?L-225 STREET', 'BROADWAY BRI?DGE?'];
             if (marbleHillStreetRegexes.some((p) => wholeStringMatchesPattern(streetText, p))) {
-                boro = 1;
+                marbleHill = true;
             } else if (housenumberTokenCount > 0) {
                 housenumberInt = parseInt(tokens[0]);
                 if (housenumberInt > 0) {
                     if ( ((streetText === 'BROADWAY')
                           && ((housenumberInt === 5485) || ((housenumberInt >= 5170) && (housenumberInt <= 5480))))
                         || ((housenumberInt < 200) && /22[578](TH)? ST/.test(streetText)) ) {
-                        boro = 1;
+                        marbleHill = true;
                     }
                 }
             }
-        }
+            if (marbleHill) {
+                boro = 1;
+            }  
+        }   
         output['borough'] = boro;
+        if (marbleHill) {
+            output['marble_hill'] = true; 
+        }
     }
 
     /* Add postcode output string, if found */
@@ -360,3 +376,5 @@ function parseNycAddress(input) {
 
     return output;
 }
+
+module.exports = parseNycAddress;

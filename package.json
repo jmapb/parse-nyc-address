@@ -1,10 +1,13 @@
 {
   "name": "parse-nyc-address",
-  "version": "0.2.1",
+  "version": "0.4.0",
   "description": "Parser for New York City street addresses",
-  "main": "parse-nyc-address.js",
+  "main": "dist/parse-nyc-address.js",
+  "devDependencies": {
+    "tape": "^4.0.1"
+  },  
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/test.js"
   },
   "repository": {
     "type": "git",
