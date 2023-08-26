@@ -33,7 +33,6 @@ test('Housenumber plus street with an abbreviated directional prefix', function(
   t.end();
 });
 
-
 test('Housenumber with suffix plus street name with street/saint ambiguity', function(t) {
   const p = parseNycAddress('90 FRONT ST JAMES PLACE');
   t.equal(p.housenumber, '90 FRONT');

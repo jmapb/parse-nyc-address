@@ -2,8 +2,8 @@
    address fields "housenumber", "street", "borough", and "postcode". Unlike typical street address
    parsers, it will *not* return city and state fields.
 
-   This parser is optimized for researching NYC properties with minimal freeform text searches of
-   housenumber, street, and optionally borough. Commas in the input are treated as generic
+   This parser is optimized for researching NYC properties with minimal unstructured text searches
+   of housenumber, street, and optionally borough. Commas in the input are treated as generic
    whitespace. It handles many common abbreviations and attempts to detect street names even when
    the street type is omitted.
 
@@ -13,7 +13,7 @@
    Geoservice: https://geoservice.planning.nyc.gov
 
    The parsing logic is designed around addresses as recorded in New York City's "PAD" file
-   (Propery Address Directory, downloadable from:
+   (Property Address Directory, downloadable from:
    https://www.nyc.gov/site/planning/data-maps/open-data.page#other)
    It will return output in ALL CAPS, like the addresses in the PAD file. Many addresses in the PAD
    are actually placenames, which are listed under the "stname" (street name) field with no
@@ -39,7 +39,7 @@
    parseNycAddress() can take full postal addresses with zip codes, but *cannot* handle addresses
    with an addressee (eg a person's name).
 
-   It also *cannot* handle apartment, suite, or other unit number styles. It will likeley return
+   It also *cannot* handle apartment, suite, or other unit number styles. It will likely return
    them as part of the street name.
 
    It is *not* useful for testing if a given address is in NYC -- even if it returns a borough code.
@@ -50,7 +50,7 @@
    Please report any issues to https://github.com/jmapb/parse-nyc-address/issues.  Thanks to MxxCon
    for assistance with Queens neighborhood names!
  */
- 
+
 
 
 const parseNycAddress = function(input) {
@@ -86,9 +86,9 @@ const parseNycAddress = function(input) {
        found in both forms: ST ANNS AVENUE, ST CLAIR PLACE, ST JOHN AVENUE, ST JOHNS AVENUE.
        All saints are listed without the S here, and '?S? will be added to the regex.
 
-       Also note 'ALBAN' in this list refers to Saint Albans Place in Staten Island, but SAINT
-       ALBANS is also a Queens neighborhood which serves as a city name in postal addresses. All
-       such multi-word Queens neighborhoods are listed in the boroRegexes below & tokenized as
+       Also note 'ALBAN' in this list refers to the road Saint Albans Place in Staten Island, but
+       SAINT ALBANS is also a Queens neighborhood which serves as a city name in postal addresses.
+       All such multi-word Queens neighborhoods are listed in the boroRegexes below & tokenized as
        part of the boro detection code, but the saints are tokenized before the boros so search
        text including "ST ALBANS" as an abbreviated postal city will be caught by this list
        instead. This is not a problem!
@@ -195,7 +195,7 @@ const parseNycAddress = function(input) {
     //--------------------------------------------------------------------------------
 
 
-    let boro = 9; 
+    let boro = 9;
     let zipBoro = 9;
     /* In addition to standard boro codes 1-5, we use 9 to mean unknown, 7 to mean inconclusive,
        and 6 to mean that Manhattan will be a fallback if no more specific info is found. We
@@ -203,7 +203,7 @@ const parseNycAddress = function(input) {
      */
     let foundNy = false;
     let postcode = '';
-    const simpleBoros = { 'MANHATTAN': 1, 'M': 1,'MA': 1,'MH': 1, 'MN': 1,
+    const simpleBoros = { 'MANHATTAN': 1, 'M': 1, 'MA': 1, 'MH': 1, 'MN': 1, 'MAN': 1, 'MANH': 1,
                           'BRONX': 2, 'BX': 2, 'BRX': 2, 'BRON': 2,
                           'BROOKLYN': 3, 'BK': 3, 'BRK': 3, 'BKLYN': 3, 'BRKLYN': 3,
                           'QUEENS': 4, 'Q': 4, 'QU': 4, 'QN': 4, 'QNS': 4, 'ARVERNE': 4,
@@ -211,7 +211,7 @@ const parseNycAddress = function(input) {
                           'BRIARWOOD': 4, 'CORONA': 4, 'DOUGLASTON': 4, 'EDGEMERE': 4,
                           'ELMHURST': 4, 'FLUSHING': 4, 'GLENDALE': 4, 'HOLLIS': 4, 'JAMAICA': 4,
                           'LAURELTON': 4, 'LIC': 4, 'MALBA': 4, 'MASPETH': 4, 'NEPONSIT': 4,
-                          'RIDGEWOOD': 4, 'ROSEDALE': 4,  'SUNNYSIDE': 4, 'WHITESTONE': 4,
+                          'RIDGEWOOD': 4, 'ROSEDALE': 4, 'SUNNYSIDE': 4, 'WHITESTONE': 4,
                           'WOODHAVEN': 4, 'WOODSIDE': 4,
                           'SI': 5,
                           'NY': 6, 'NYNY': 6, 'NYC': 6,
@@ -221,7 +221,7 @@ const parseNycAddress = function(input) {
                              112: 3,
                              111: 4, 113: 4, 114: 4, 116: 4,
                              103: 5 };
- 
+
     /* Loop backwards through the tokens looking for boro names */
     while (tokens.length - housenumberTokenCount > 1) { //make sure we leave at least one token for steet, even if it looks like a boro
         finalToken = tokens[tokens.length - 1] ?? '';
@@ -361,11 +361,11 @@ const parseNycAddress = function(input) {
             }
             if (marbleHill) {
                 boro = 1;
-            }  
-        }   
+            }
+        }
         output['borough'] = boro;
         if (marbleHill) {
-            output['marble_hill'] = true; 
+            output['marble_hill'] = true;
         }
     }
 
@@ -377,4 +377,6 @@ const parseNycAddress = function(input) {
     return output;
 }
 
-module.exports = parseNycAddress;
+if (typeof module !== 'undefined') {
+    module.exports = parseNycAddress;
+}

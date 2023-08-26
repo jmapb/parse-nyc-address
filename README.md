@@ -4,14 +4,14 @@
 
 A demo is available at https://jmapb.github.io/parse-nyc-address/.
 
-This parser is optimized for researching NYC properties with minimal freeform text searches of housenumber, street, and optionally borough. Commas in the input are treated as generic whitespace. It handles many common abbreviations and attempts to detect street names even when the street type is omitted.
+This parser is optimized for researching NYC properties with minimal unstructured text searches of housenumber, street, and optionally borough. Commas in the input are treated as generic whitespace. It handles many common abbreviations and attempts to detect street names even when the street type is omitted.
 
 parseNycAddress() was developed for use with the City's open data tools and APIs such as:<br>
 GOAT https://a030-goat.nyc.gov/goat<br>
 GeoSearch https://geosearch.planninglabs.nyc<br>
 Geoservice https://geoservice.planning.nyc.gov
 
-The parsing logic is designed around addresses as recorded in New York City's "PAD" file (Propery Address Directory, downloadable from:
+The parsing logic is designed around addresses as recorded in New York City's "PAD" file (Property Address Directory, downloadable from:
 https://www.nyc.gov/site/planning/data-maps/open-data.page#other).
 It will return output in ALL CAPS, like the addresses in the PAD file. Many addresses in the PAD are actually placenames, which are listed under the "stname" (street name) field with no housenumber. Therefore this parser will return any otherwise-unparsed text as part of the street field in the output, even if no housenumber is found.
 
