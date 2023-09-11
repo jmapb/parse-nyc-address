@@ -65,6 +65,14 @@ test('Housenumber, street without type, abbreviated borough', function(t) {
   t.end();
 });
 
+test('Housenumber with suffix, street whose name looks like a housenumber suffix, various newline chars', function(t) {
+  const p = parseNycAddress('1307 \r \r \r REAR\r\nA\r\n\r\nST...');
+  t.equal(p.housenumber, '1307 REAR');
+  t.equal(p.street, 'A ST');
+  t.equal(p.hasOwnProperty('borough'), false);
+  t.end();
+});
+
 test('Housenumber with two suffixes, street name with prefix, borough specified by neighborhood name', function(t) {
   const p = parseNycAddress('189 1/2 A Beach 25th St Far Rockaway');
   t.equal(p.housenumber, '189 1/2 A');
@@ -83,9 +91,9 @@ test('Full postal address with zip code and country', function(t) {
 });
 
 test('Housenumber and street in Marble Hill, returns borough 1 despite having a Bronx postal address', function(t) {
-  const p = parseNycAddress('165 West 228th St Bronx NY');
-  t.equal(p.housenumber, '165');
-  t.equal(p.street, 'WEST 228TH ST');
+  const p = parseNycAddress('2 Jacobus Pl., Bronx, New York');
+  t.equal(p.housenumber, '2');
+  t.equal(p.street, 'JACOBUS PL');
   t.equal(p.borough, 1);
   t.end();
 });
