@@ -17,6 +17,14 @@ test('Housenumber with suffix plus multi-word street', function(t) {
   t.end();
 });
 
+test('All-digit housenumber followed by all-digit street', function(t) {
+  const p = parseNycAddress('72 18');
+  t.equal(p.housenumber, '72');
+  t.equal(p.street, '18');
+  t.equal(p.hasOwnProperty('borough'), false);
+  t.end();
+});
+
 test('Housenumber, street whose name looks like a housenumber suffix, irregular borough name', function(t) {
   const p = parseNycAddress('1010 D STREET THE BRONX');
   t.equal(p.housenumber, '1010');
@@ -95,5 +103,22 @@ test('Housenumber and street in Marble Hill, returns borough 1 despite having a 
   t.equal(p.housenumber, '2');
   t.equal(p.street, 'JACOBUS PL');
   t.equal(p.borough, 1);
+  t.equal(p.marble_hill, true);
+  t.end();
+});
+
+test('Building on the Marble Hill side of the Marble Hill Houses', function(t) {
+  const p = parseNycAddress('marble hill houses bldg 1');
+  t.equal(p.street, 'MARBLE HILL HOUSES BLDG 1');
+  t.equal(p.borough, 1);
+  t.equal(p.marble_hill, true);
+  t.end();
+});
+
+test('Building on the Bronx side of the Marble Hill Houses', function(t) {
+  const p = parseNycAddress('marble hill houses bldg 11');
+  t.equal(p.street, 'MARBLE HILL HOUSES BLDG 11');
+  t.equal(p.borough, 2);
+  t.equal(p.hasOwnProperty('marble_hill'), false);
   t.end();
 });

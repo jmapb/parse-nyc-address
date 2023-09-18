@@ -5,7 +5,7 @@
 
    This parser is optimized for researching NYC properties with minimal searches in the form
    "HOUSENUMBER STREET" or "HOUSENUMBER STREET BOROUGH", but it can also take full postal
-   addresses with city, state, and ZIP code. Commas and line separators in the input are treated as
+   addresses with city, state, and zip code. Commas and line separators in the input are treated as
    generic whitespace, and periods preceding whitespace are ignored. The parser handles many common
    abbreviations and attempts to detect street names even when the street type is omitted.
 
@@ -17,8 +17,8 @@
    The parsing logic is designed around addresses as recorded in New York City's "PAD" file
    (Property Address Directory, downloadable from:
    https://www.nyc.gov/site/planning/data-maps/open-data.page#other)
-   It will return output in ALL CAPS, like the addresses in the PAD file. Many addresses in the
-   PAD are actually placenames, which are listed in PAD's "stname" (street name) field with no
+   It will return output in ALL CAPS, like the addresses in the PAD file. Many of these addresses
+   are actually placenames, which are listed in the PAD's "stname" (street name) field with no
    housenumber. Therefore this parser will return any otherwise-unparsed text as part of the
    street field in the output, even if no housenumber is found.
 
@@ -56,7 +56,7 @@
    addresses in the country of Jamaica. It does no validation on the data, but merely reports what
    the address components and borough would be *if* the input text were a valid NYC address.
 
-   Please report any issues to https://github.com/jmapb/parse-nyc-address/issues.  Thanks to MxxCon
+   Please report any issues to https://github.com/jmapb/parse-nyc-address/issues. Thanks to MxxCon
    for assistance with Queens neighborhood names!
  */
 
@@ -127,7 +127,7 @@ const parseNycAddress = function(input) {
        (Single-word boro indicators like "Manhattan" and "Brooklyn", and the single-word Queens
        neighborhoods, are listed below in step 3, in the simpleBoros object.)
      */
-    const boroRegexes =  { 1: ['MARBLE ?HI?L?L'], //Allow iffy Marble Hill -> Manhatan mapping (see Step 4)
+    const boroRegexes =  { 1: ['MARBLE ?HI?L?L'], //Allow iffy Marble Hill -> Manhattan mapping (see Step 4)
                            2: ['THE ?B(RO)?N?X'],
                            4: ['ADDISLEIGH ?PA?R?K', 'BAYSIDE ?HI?L?LS?', 'BELLE? ?HA?RB(OR)?',
                                'BELLE?ROSE( MANOR)', 'BREEZY ?P(OI)?N?T', 'BR(OA)?D ?CHAN(NEL)?',
@@ -153,11 +153,11 @@ const parseNycAddress = function(input) {
      */
     const multiWordTokens = saintNames.map(x => "ST\\.? " + x + "'?S?").concat( ['AVE?(NUE)? OF',
         '(BMT.Q.)?AVE?(NUE)? \\w', 'FRONT STR(EET)?', '\\w STR(EET)?', 'FRONT R(OA)?D',
-        '\\w R(OA)?D', 'OF NEW ?YORK', 'OF NY', 'OF MANHATTAN', 'OF THE ?BRONX', 'OF BROOKLYN',
+        '\\w R(OA)?D', 'OF NEW ?YORK', 'OF NY', 'OF MANHATTAN', 'OF THE ?BRONX', 'OF BR?(OO)?KLYN',
         'OF Q(UEE)?NS', 'CE?N?TE?R Q(UEE)?NS', 'OF STATEN ?ISL?(AND)?', 'OF SI', 'PS.?IS 78 Q',
-        'HA?R?BO?R BU?I?LDI?N?G Q'], Object.values(boroRegexes).flat());
-    let tokenizerRegex = new RegExp('\\b' + multiWordTokens.join('\\b|\\b') + '\\b|\\S+', 'g');
-    let tokens = input.replace(/\.*[\s\r\n,]+|\.+$/g, " ").trim().toUpperCase().match(tokenizerRegex) ?? [];
+        'HA?R?BO?R BU?I?LDI?N?G Q', 'AIR TRAIN[-A-Z]*', 'ED KOCH', 'UNDER THE'], Object.values(boroRegexes).flat());
+    const tokenizerRegex = new RegExp('\\b' + multiWordTokens.join('\\b|\\b') + '\\b|\\S+', 'g');
+    const tokens = input.replace(/\.*[\s,]+|\.+$/g, " ").trim().toUpperCase().match(tokenizerRegex) ?? [];
     //consider also sanitizing angled single quotes, in case they make their way into possessives
 
 
@@ -189,6 +189,17 @@ const parseNycAddress = function(input) {
        the housenumberTokenCount for now. Later, after eliminating any boro or postal code
        tokens, we'll take another look and maybe append that ambiguous token to the
        housenumber after all.
+
+       Note: Only tokens included in the housenumberTokens and ambiguousTokens lists are considered
+       valid as subsequent parts of a housenumber. If the parser encounters any other token, even
+       one that's all digits, that will be considered part of the street. So the input string
+       "72 18" would return "72" as the housenumber and "18" as the street, which is good because
+       this might be shorthand for 72 18th Street. But input "72 18 Broadway" would return "72" as
+       the housenumber and "18 Broadway" as the street -- which isn't good if this input is trying
+       to specify "72-18 Broadway", a valid address in Queens with a hyphenated housenumber. (It's
+       quite common to see Queens addresses omit these hyphens, eg "7218 Broadway", but it's also
+       reasonably common to see them written with a space in place of the hyphen.) So this might
+       be an area for future improvement, if we want to support this addressing style.
      */
     if ((tokens[0] ?? '').search(/\d/) === 0) {
         housenumberTokenCount = 1;
@@ -236,13 +247,18 @@ const parseNycAddress = function(input) {
                              111: 4, 113: 4, 114: 4, 116: 4,
                              103: 5 };
 
-    /* Loop backwards through the tokens looking for boro names */
+    /* Loop backwards through the tokens looking for boro names and postcodes */
     let finalToken = '';
-    while (tokens.length - housenumberTokenCount > 1) { //make sure we leave at least one token for steet, even if it looks like a boro
+    while (tokens.length - housenumberTokenCount > 1) { //make sure we leave at least one token for street, even if it looks like a boro
         finalToken = tokens[tokens.length - 1] ?? '';
         if (zipBoro === 9) {
             const zipMatches = /^(\d\d\d)\d\d/.exec(finalToken);
             if (Array.isArray(zipMatches)) {
+                /* Set postcode string to be returned by parser. Note that this is *not* just
+                   the 5-digit zip match above, but the entire token -- all we know is that is
+                   begins with 5 digits. So this will return full ZIP+4 style zip codes, but
+                   it will also return eg '123456789' or '10000-POUNDS-OF-FEATHERS'.
+                 */
                 postcode = finalToken;
                 zipBoro = zipPrefixBoros[zipMatches[1]] ?? 7;
                 tokens.pop();
@@ -345,7 +361,7 @@ const parseNycAddress = function(input) {
        borough to Manhattan, possibly overriding Bronx postal addresses. We'll trigger this
        by setting the marbleHill flag to true.
 
-       We *won't* do this if the input text specifies the borough as Brooklyn, Queens, or
+       We *won't* try this if the input text specifies the borough as Brooklyn, Queens, or
        Staten Island, or if it contains a zip code other than 10463, which is the only valid
        Marble Hill zip.
 
@@ -353,6 +369,13 @@ const parseNycAddress = function(input) {
        stname field) that are entirely within borough 1, so any address on those streets will be
        in Marble Hill. For certain other street names we'll examine the housenumber and determine
        if it lies within the range of addresses in Marble Hill.
+
+       In most cases we can accurately identify a Marble Hill address even when no borough is
+       specified by the input text (either explicity or implicitly by zip code.) This parser will
+       return a borough code via deduction in these cases, and only in these cases. (It would, in
+       fact, be possible to deduce a missing borough for many housenumber/streetname combinations
+       in NYC, but that's not a parser's job -- it's only done here because Marble Hill is a
+       special problem.)
 
        Note that there's a boro 1 regex for 'MARBLE ?HI?L?L' in the boroRegexes list in step 1, so
        any input that uses Marble Hill as the city name (incorrect addressing, but sometimes seen
@@ -365,7 +388,7 @@ const parseNycAddress = function(input) {
        not set the flag for any common form of any real non-Marble-Hill address, that's good
        enough.
     */
-    if (['','10463'].includes(postcode) && ![3,4,5].includes(boro)) {
+    if (((postcode === '') || (postcode.indexOf('10463') === 0)) && ![3,4,5].includes(boro)) {
         /* First check -- Any address whose streetname text contains "MARBLE HILL HOUSES" is in
            Marble Hill. (Except for MARBLE HILL HOUSES BUILDING 4/5/6/11, which are in the Bronx.
            If one of those is found we'll actually override the borough to Bronx, in case the
@@ -373,7 +396,7 @@ const parseNycAddress = function(input) {
          */
         const mhhMatches = streetText.match(/MARBLE HI?L?L HOUSES( B(UI)?LDI?N?G (\d+))?/);
         if (Array.isArray(mhhMatches)) {
-            if ((mhhMatches.length() > 2) && (['4','5','6','11'].contains(mhhMatches[2]))) {
+            if ((mhhMatches.length > 3) && (['4','5','6','11'].includes(mhhMatches[3]))) {
                 boro = 2;
             } else {
                 marbleHill = true;
@@ -391,11 +414,13 @@ const parseNycAddress = function(input) {
             if (marbleHillStreetRegexes.some((p) => wholeStringMatchesPattern(streetText, p))) {
                 marbleHill = true;
             } else if ((housenumberTokenCount > 0) && !(tokens[0].includes('-'))) {
-                /* Third and final check -- If the input text includes a housenumber, check the
-                   street name against the four streets that, per the PAD, have some Marble Hill
-                   addresses and some non-Marble-Hill addresses. (We'll skip any housenumber with
-                   a dash in the first token, to avoid possible confusion with hyphenated Queens
-                   addresses -- no hyphenated addresses occur in Marble Hill.)
+                /* Third and final check -- If the input text includes a housenumber (excluding
+                   any housenumbers with hyphens, since none of those are found in Marble Hill
+                   but they might cause confusion with some Queens addresses), check the street
+                   name against the four streets that, per the PAD, have some Marble Hill
+                   addresses and some non-Marble-Hill addresses. (Actually it's just three streets,
+                   but we'll tack on West 228th as well so we can look for its "front-truncated"
+                   form, see below.)
 
                    a) BROADWAY -- Marble Hill housenumbers range from 5170 to 5480, plus 5485.
 
@@ -424,15 +449,15 @@ const parseNycAddress = function(input) {
                    c) WEST 227TH STREET -- Marble Hill housenumbers range from 103 to 130
                    d) WEST 228TH STREET -- Marble Hill housenumbers range from 100 to 174
 
-                      * For simplicity, we'll just use West 225th's range of 40-176 for all three
-                      of these. Given the housenumber layout there's no chance of false positives
-                      with any real addresses.
+                      * For simplicity, we'll just use West 225th's range of 40 to 176 for all three
+                      of these. Given the current and presumed future housenumber layout, there's
+                      negligible chance of false positives or false negatives.
 
                       * It's common in NYC to omit the EAST or WEST directional prefix on many
                       streets, if it doesn't cause ambiguity. (The City calls this practice "front
-                      truncatation.") So we'll match these streets with or without the WEST.
-                      Luckily, even with the front truncation, we don't have conflicts in this
-                      range in other boroughs.
+                      truncation.") So we'll match these streets with or without the WEST. Luckily,
+                      even with the front truncation, we don't have conflicts in this address range
+                      in other boroughs.
                  */
                 const housenumberInt = parseInt(tokens[0]);
                 if ( ((streetText === 'BROADWAY') &&
@@ -454,7 +479,7 @@ const parseNycAddress = function(input) {
         }
     }
 
-    /* Add borough/postcode/marble_hill, if applicable */
+    /* Add borough/postcode/marble_hill output items, if applicable */
     if (boro < 6) {
         output['borough'] = boro;
     }

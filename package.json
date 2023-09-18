@@ -1,6 +1,6 @@
 {
   "name": "parse-nyc-address",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Parser for New York City street addresses",
   "main": "dist/parse-nyc-address.js",
   "devDependencies": {
