@@ -16,7 +16,7 @@
 
    The parsing logic is designed around addresses as recorded in New York City's "PAD" file
    (Property Address Directory, downloadable from:
-   https://www.nyc.gov/site/planning/data-maps/open-data.page#other)
+   https://www.nyc.gov/content/planning/pages/resources/datasets/pad)
    It will return output in ALL CAPS, like the addresses in the PAD file. Many of these addresses
    are actually placenames, which are listed in the PAD's "stname" (street name) field with no
    housenumber. Therefore this parser will return any otherwise-unparsed text as part of the

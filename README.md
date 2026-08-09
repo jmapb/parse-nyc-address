@@ -12,7 +12,7 @@ GeoSearch https://geosearch.planninglabs.nyc<br>
 Geoservice https://geoservice.planning.nyc.gov<br>
 
 The parsing logic is designed around addresses as recorded in New York City's "PAD" file (Property Address Directory, downloadable from:
-https://www.nyc.gov/site/planning/data-maps/open-data.page#other)
+https://www.nyc.gov/content/planning/pages/resources/datasets/pad)
 It will return output in ALL CAPS, like the addresses in the PAD file. Many of these addresses are actually placenames, which are listed in the PAD's "stname" (street name) field with no housenumber. Therefore this parser will return any otherwise-unparsed text as part of the street field in the output, even if no housenumber is found.
 
 The borough, if found, will be returned as a digit from 1 to 5. (1=Manhattan, 2=Bronx, 3=Brooklyn, 4=Queens, 5=Staten Island.) Neighborhood and borough names are not returned, but special consideration is given for Marble Hill, an anomalous neighborhood on the Bronx side of the Harlem River. It is legally in the borough of Manhattan, but its correct postal addresses include "Bronx, NY" and a Bronx zip code. This parser will return **"borough":1** for Marble Hill addresses, even when the input text specifies the borough as Bronx -- and for clarity, will also tag them with  **"marble_hill":true**.
