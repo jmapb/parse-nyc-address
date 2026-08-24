@@ -1,29 +1,130 @@
 <!DOCTYPE html>
+<!-- Demo for https://jmapb.github.io/parse-nyc-address -->
 <html lang="en"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parse NYC Address</title>
-</head>
-<body>
-    <h1>Parse NYC Address</h1>
-    <div>
-        <input id="parseInputId" value="82 REAR A AVENUE A MH" autofocus=true spellcheck=false size=66">
-        <button id="parseButtonId" type="button" onclick="parseDemo();">Parse</button>
-    </div>
-    <textarea id="outputTextareaId" readonly rows="5" cols="66"></textarea>
-    <script>
-        document.getElementById('parseInputId').addEventListener('keyup', checkKey);
+    <style>
+        .wrapReverseContainer {
+          display: flex;
+          flex-wrap: wrap-reverse;
+        }
+
+        .wrapReverseContainer div {
+          background-color: #f1f1f1;
+          margin: 9px;
+          padding: 9px;
+          font-size: 17px;
+        }
         
-        function checkKey(e) {
-            if (e.keyCode === 13) {
-                parseDemo();
+        li {
+            cursor:pointer;
+            color:green;
+            text-decoration:underline;
+        }
+    </style>
+</head>
+<script src="https://jmapb.github.io/parse-nyc-address/dist/parse-nyc-address.js"></script>
+<script src="https://hassansin.github.io/parse-address/javascripts/parse-address.min.js"></script>
+<body>
+    <div class="wrapReverseContainer">
+        <div>
+            <h1></h1>
+            <input id="parseInputId" value="3434 1/3 BOLLER AVE" autofocus=true spellcheck=false size=45">
+            <button id="parseButtonId" type="button" onclick="parseDemo();">Parse</button>
+            <p><a href="https://github.com/jmapb/parse-nyc-address" target="_blank" title="NYC-specific address parser demoed here">parse-nyc-address</a><br><textarea id="pnaOutputId" readonly rows="8" cols="55"></textarea></p>
+            <p><a href="https://github.com/hassansin/parse-address" target="_blank" title="Perl's Geo::StreetAddress::US package ported to JavaScript by hassansin">parse-address<br><textarea id="paOutputId" readonly rows="8" cols="55"></textarea></p>
+            <p><a href="https://geosearch.planninglabs.nyc" target="_blank" title="GeoSearch is an address API from the NYC Dept of Planning. Historically it employed a variety of parsing libraries but now seems to always use Pelias.">NYC GeoSearch</a><br><textarea id="gsOutputId" readonly rows="8" cols="55"></textarea></p>
+            <!-- In particular, GeoSearch v1 used both libpostal (https://github.com/openvenues/libpostal) and addressit
+            (https://github.com/DamonOehlman/addressit). Parse-nyc-address compares favorably with both of these in offline
+            testing but it would be nice to include them in this demo too. -->
+        </div>
+        <div style="flex-basis: 500px">
+            <h1>Parse-NYC-Address</h1>
+            <p>Demo for <a href="https://github.com/jmapb/parse-nyc-address" target="_blank">github.com/jmapb/parse-nyc-address</a></p>
+            <p>Enter an address or click on examples below to compare output with other address parsers. Parse-nyc-address is tailored
+               for NYC addressing quirks such as fractional and non-numeric housenumber suffixes, street names starting with AVENUE,
+               and street/saint ambiguities.
+                <ul>
+                    <li onclick="parseDemo(this.textContent);">3434 1/3 BOLLER AVE</li>
+                    <li onclick="parseDemo(this.textContent);">165 BA QUINCY STREET</li>
+                    <li onclick="parseDemo(this.textContent);">204 REAR FRONT ST</li>
+                    <li onclick="parseDemo(this.textContent);">655 FRONT A ST ANNS AVENUE</li>
+                    <li onclick="parseDemo(this.textContent);">355 AVE X</li>
+                    <li onclick="parseDemo(this.textContent);">20 AVENUE OF THE AMERICAS</li>
+                </ul>
+            </p>
+            <p>A borough code (1=Manhattan, 2=Bronx, 3=Brooklyn, 4=Queens, 5=Staten Island) will be returned if it can be parsed from
+               a borough name/abbrevition, postal city, or zip code. <a href="https://en.wikipedia.org/wiki/Marble_Hill%2C_Manhattan" target="_blank">Marble Hill</a> addresses will return borough=1.
+                <ul>
+                    <li onclick="parseDemo(this.textContent);">97 1/2 EAST 7 STREET NY NY</li>
+                    <li onclick="parseDemo(this.textContent);">78 EAST 7 STREET NY NY 11218</li>                    
+                    <li onclick="parseDemo(this.textContent);">1307 REAR A ST BX</li>
+                    <li onclick="parseDemo(this.textContent);">82 REAR A AVENUE A MH</li>
+                    <li onclick="parseDemo(this.textContent);">189 1/2 A BEACH 25TH ST FAR ROCKAWAY</li>
+                    <li onclick="parseDemo(this.textContent);">40 CONTINENTAL AV FOREST HILLS</li>
+                    <li onclick="parseDemo(this.textContent);">30 CRANBERRY CT SI USA</li>
+                    <li onclick="parseDemo(this.textContent);">2 JACOBUS PLACE, BRONX, NEW YORK</li>
+                </ul>
+            </p>            
+        </div>
+    </div>
+</body>
+<script>
+    document.getElementById('parseInputId').addEventListener('keyup', checkKey);
+    
+    function checkKey(e) {
+        if (e.keyCode === 13) {
+            parseDemo();
+        }
+    }
+    
+    async function parseDemo(input) {
+        document.getElementById('pnaOutputId').value = '';
+        document.getElementById('paOutputId').value = '';
+        document.getElementById('gsOutputId').value = '';
+
+        if (typeof input === 'undefined') {
+            input = document.getElementById('parseInputId').value;
+        }
+        input = input.trim();
+        document.getElementById('parseInputId').value = input
+        
+        if (input.length > 0) {
+            
+            let pnaOutput = parseNycAddress(input);
+            document.getElementById('pnaOutputId').value = JSON.stringify(pnaOutput,null,2);
+            
+            let paOutput = parseAddress.parseLocation(input);
+            document.getElementById('paOutputId').value = JSON.stringify(paOutput,null,2);
+            
+            document.getElementById('gsOutputId').value = '...waiting for response...';
+            let gsOutput = 'No valid response from GeoSearch API';
+            let errorMessage = gsOutput;
+            const nycGeosearchApiQuery = 'https://geosearch.planninglabs.nyc/v2/search?text=' + encodeURIComponent(input);
+            try {
+                const response = await fetch(nycGeosearchApiQuery);
+                if (!response.ok) {
+                    let statusMessage = (response?.status + ' ' + response?.statusText).trim();
+                    if (statusMessage.length() > 0) {
+                        errorMessage = 'GeoSearch API: ' + statusMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+                const json = await response.json();
+                if (typeof json.geocoding?.query?.parsed_text !== 'undefined') {
+                    gsOutput = json.geocoding.query.parsed_text;
+                    if (typeof json.geocoding?.query?.parser !== 'undefined') {
+                        gsOutput.parser = json.geocoding.query.parser;
+                    }
+                    console.log(json.geocoding.query.parsed_text);
+                }
+                document.getElementById('gsOutputId').value = JSON.stringify(gsOutput,null,2);
+            } catch (error) {
+                document.getElementById('gsOutputId').value = error.message;
             }
         }
-        
-        function parseDemo() {
-            document.getElementById('outputTextareaId').value = JSON.stringify(parseNycAddress(document.getElementById('parseInputId').value));
-        }
-    </script>
-    <script src="./dist/parse-nyc-address.js"></script>
-</body></html>
+    }
+</script>
+</html>
